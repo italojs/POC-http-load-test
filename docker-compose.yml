@@ -1,0 +1,33 @@
+version: '3.8'
+services:
+  fastify-app:
+    build: .
+    ports:
+      - "3000:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'      
+          memory: 1G   
+
+  load-tester:
+    image: grafana/k6
+    volumes:
+      - ./results:/home/k6/results
+      - ./test.js:/test.js
+      - ./entrypoint.sh:/entrypoint.sh
+    entrypoint: ["sh", "/entrypoint.sh"]
+    depends_on:
+      - fastify-app
+    network_mode: host
+    environment:
+      - TEST=stress
+    deploy:
+      resources:
+        limits:
+          cpus: '1'     
+          memory: 1G    
+
+volumes:
+  k6-results:
+    driver: local
